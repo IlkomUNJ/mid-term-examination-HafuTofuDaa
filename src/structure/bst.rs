@@ -1,4 +1,5 @@
 use std::cell::{Ref, RefCell};
+use std::collections::btree_map::Range;
 use std::rc::{Rc, Weak};
 
 pub type BstNodeLink = Rc<RefCell<BstNode>>;
@@ -263,6 +264,95 @@ impl BstNode {
 
         false
     }
+
+    pub fn add_node (&self, target_node: &BstNodeLink, value: i32) -> bool {
+        if target_node.clone().borrow().key.is_none() {
+            return false;
+        } if let Some(left) = self.clone().left {
+            if left.borrow().key.unwrap() == target_node.borrow().key.unwrap() {
+                if left.clone().borrow().left.is_some() {
+                    left.borrow_mut().add_right_child(target_node, value);
+                } else {
+                    left.borrow_mut().add_left_child(target_node, value);
+                }
+                return true;
+            } else {
+                left.borrow_mut().add_node(target_node, value);
+            }
+        } if let Some(right) = self.clone().right {
+            if right.borrow().key.unwrap() == target_node.borrow().key.unwrap() {
+                if right.clone().borrow().right.is_some() {
+                    right.borrow_mut().add_right_child(target_node, value);
+                } else {
+                    right.borrow_mut().add_left_child(target_node, value);
+                }
+                return true;
+            } else {
+                right.borrow_mut().add_node(target_node, value);
+            }
+        }
+        
+        false
+    }
+
+    pub fn tree_predecessor(node: &BstNodeLink) -> Option<BstNodeLink> {
+        if let Some(parent_node) = node.clone().borrow().parent.as_ref().unwrap().upgrade() {
+            if parent_node.borrow().right.is_some() {
+                if parent_node.borrow().right.as_ref().unwrap().borrow().key.unwrap() == node.clone().borrow().key.unwrap() {
+                    return Some(parent_node.clone());
+                }
+            }
+        } if let Some(left_node) = node.borrow().left.clone() {
+            return Some(left_node.borrow().maximum());
+        }
+        None
+    }
+
+    pub fn median (&self) -> BstNodeLink{
+        let mut ndiff = 0;
+        if self.right.is_some() {
+            ndiff += self.right.as_ref().unwrap().borrow().ncounter();
+        } if self.left.is_some() {
+            ndiff -= self.left.as_ref().unwrap().borrow().ncounter();
+        } if ndiff < 0 {
+            ndiff = ndiff * -1;
+        }
+        let realdiff = BstNode::diffcounter(ndiff);
+        let mut diff = realdiff as i32;
+        let mut med = self.clone().left.as_ref().unwrap().borrow().parent.as_ref().unwrap().upgrade().unwrap().clone();
+        let mut medi: Option<BstNodeLink> ;
+        if diff > 0 {
+            diff -= 1;
+            medi = BstNode::tree_predecessor(&med);
+            while diff != 0 {
+                medi = BstNode::tree_predecessor(&medi.unwrap());
+                diff-=1;
+            }
+        } else {
+            return med;
+        }
+        return medi.unwrap();
+    }
+
+    fn ncounter (&self) -> i32 {
+        let mut count = 1;
+        if self.left.is_some() {
+            count += self.left.clone().unwrap().borrow().ncounter();
+        } if self.right.is_some() {
+            count += self.right.clone().unwrap().borrow().ncounter();
+        } 
+        count
+    }
+
+    fn diffcounter (count: i32) -> f32{
+        let mut fcount = (count as f32 / 2.0) - ((count as f32 / 2.0)  - (count as f32 % 2.0));
+        fcount
+    }
+
+    // fn tree_rebalance (node: &BstNodeLink) -> BstNodeLink {
+        
+    //     None
+    // }
 
     /**
      * Alternate simpler version of tree_successor that made use of is_nil checking

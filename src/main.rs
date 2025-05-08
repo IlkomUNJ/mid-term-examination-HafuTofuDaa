@@ -11,7 +11,21 @@ use crate::tool::generate_dotfile_bst;
 fn main() {
     //turn on to test the old code
     // test_binary_tree();
-    test_binary_search_tree();
+    // test_binary_search_tree();
+    let rootlink: BstNodeLink = BstNode::new_bst_nodelink(15);
+    rootlink.borrow_mut().add_left_child(&rootlink.clone(), 10);
+    let rootclone = rootlink.clone();
+    let leftroot = rootclone.borrow().left.clone().unwrap();
+    rootlink.borrow_mut().add_node(&leftroot, 8);
+    println!("{:#?}", leftroot.borrow().left.as_ref().unwrap().borrow().parent.as_ref().unwrap().upgrade());
+    println!("{:#?}", BstNode::tree_predecessor(&leftroot));
+    let leftleftroot = leftroot.as_ref().borrow().left.clone().unwrap();
+    println!("{:#?}", BstNode::tree_predecessor(&leftleftroot));
+    rootlink.borrow_mut().add_node(&leftroot, 12);
+    let leftrightroot = leftroot.as_ref().borrow().right.clone().unwrap();
+    println!("predec of 12: {:#?}", BstNode::tree_predecessor(&leftrightroot));
+    println!("12 node: {:#?}", leftrightroot);
+    println!("{:#?}", rootlink.borrow().median());
 }
 
 fn test_binary_search_tree(){
@@ -230,4 +244,3 @@ fn test_binary_tree() {
     generate_dotfile(&rootlink, main_tree_path);
 }
 
-#[test]
