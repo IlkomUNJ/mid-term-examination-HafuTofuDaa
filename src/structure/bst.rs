@@ -319,11 +319,12 @@ impl BstNode {
         }
         let realdiff = BstNode::diffcounter(ndiff);
         let mut diff = realdiff as i32;
-        let mut med = self.clone().left.as_ref().unwrap().borrow().parent.as_ref().unwrap().upgrade().unwrap().clone();
+        let selfclone=self.clone();
+        let mut med = selfclone.left.as_ref().unwrap().borrow().parent.as_ref().unwrap().upgrade().unwrap().clone();
         let mut medi: Option<BstNodeLink> ;
         if diff > 0 {
             diff -= 1;
-            medi = BstNode::tree_predecessor(&med);
+            medi = Some(med.clone().borrow().left.as_ref().unwrap().borrow().maximum());
             while diff != 0 {
                 medi = BstNode::tree_predecessor(&medi.unwrap());
                 diff-=1;
